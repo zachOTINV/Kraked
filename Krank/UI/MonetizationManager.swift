@@ -15,12 +15,20 @@ final class InAppPurchaseManager: ObservableObject {
         case removeAds
         case bonusPacks
 
-        var productID: String {
+        var productIDs: [String] {
             switch self {
             case .removeAds:
-                return "otinv.Krank.remove_ads"
+                return [
+                    "com.otinv.krank.remove_ads",
+                    "com.overtimeinnovations.krank.remove_ads",
+                    "otinv.Krank.remove_ads",
+                ]
             case .bonusPacks:
-                return "otinv.Krank.unlock_more_levels"
+                return [
+                    "com.otinv.krank.unlock_more_levels",
+                    "com.overtimeinnovations.krank.unlock_more_levels",
+                    "otinv.Krank.unlock_more_levels",
+                ]
             }
         }
 
@@ -75,7 +83,7 @@ final class InAppPurchaseManager: ObservableObject {
     }
 
     func displayPrice(for productType: ProductType, fallback: String) -> String {
-        productsByID[productType.productID]?.displayPrice ?? fallback
+        product(for: productType)?.displayPrice ?? fallback
     }
 
     func purchase(_ productType: ProductType) async -> PurchaseResult {
@@ -92,11 +100,11 @@ final class InAppPurchaseManager: ObservableObject {
         isProcessing = true
         defer { isProcessing = false }
 
-        if productsByID[productType.productID] == nil {
+        if product(for: productType) == nil {
             await loadProducts()
         }
 
-        guard let product = productsByID[productType.productID] else {
+        guard let product = product(for: productType) else {
             return .failed("This purchase is currently unavailable. Please try again.")
         }
 
@@ -134,7 +142,7 @@ final class InAppPurchaseManager: ObservableObject {
             try await AppStore.sync()
             let activeIDs = await refreshEntitlements()
 
-            if activeIDs.contains(productType.productID) {
+            if productType.productIDs.contains(where: activeIDs.contains) {
                 return .restored
             }
             return .nothingToRestore
@@ -163,7 +171,7 @@ final class InAppPurchaseManager: ObservableObject {
 
     private func loadProducts() async {
         do {
-            let productIDs = ProductType.allCases.map(\.productID)
+            let productIDs = ProductType.allCases.flatMap(\.productIDs)
             let products = try await Product.products(for: productIDs)
             productsByID = Dictionary(uniqueKeysWithValues: products.map { ($0.id, $0) })
         } catch {
@@ -185,8 +193,8 @@ final class InAppPurchaseManager: ObservableObject {
 
         for productType in ProductType.allCases {
             applyEntitlement(
-                for: productType.productID,
-                isUnlocked: activeProductIDs.contains(productType.productID)
+                for: productType,
+                isUnlocked: productType.productIDs.contains(where: activeProductIDs.contains)
             )
         }
 
@@ -194,10 +202,23 @@ final class InAppPurchaseManager: ObservableObject {
     }
 
     private func applyEntitlement(for productID: String, isUnlocked: Bool) {
-        guard let productType = ProductType.allCases.first(where: { $0.productID == productID }) else {
+        guard let productType = ProductType.allCases.first(where: { $0.productIDs.contains(productID) }) else {
             return
         }
+        applyEntitlement(for: productType, isUnlocked: isUnlocked)
+    }
+
+    private func applyEntitlement(for productType: ProductType, isUnlocked: Bool) {
         defaults.set(isUnlocked, forKey: productType.unlockStorageKey)
+    }
+
+    private func product(for productType: ProductType) -> Product? {
+        for productID in productType.productIDs {
+            if let product = productsByID[productID] {
+                return product
+            }
+        }
+        return nil
     }
 
     private func verifiedTransaction(from verification: VerificationResult<Transaction>) throws -> Transaction {
@@ -521,6 +542,10 @@ private final class LevelPlayAdProvider: NSObject, AdProvider {
         interstitialReady = false
     }
 
+    fileprivate func handleInterstitialClicked(adFormat: String) {
+        MetaAppEventsManager.logAdClick(adType: normalizedAdType(from: adFormat))
+    }
+
     fileprivate func handleInterstitialDisplayFailed() {
         interstitialReady = false
         let completion = pendingInterstitialCompletion
@@ -545,6 +570,10 @@ private final class LevelPlayAdProvider: NSObject, AdProvider {
     fileprivate func handleRewardedDisplayed() {
         rewardedReady = false
         rewardedWasDisplayed = true
+    }
+
+    fileprivate func handleRewardedClicked(adFormat: String) {
+        MetaAppEventsManager.logAdClick(adType: normalizedAdType(from: adFormat))
     }
 
     fileprivate func handleRewardGranted() {
@@ -578,6 +607,15 @@ private final class LevelPlayAdProvider: NSObject, AdProvider {
         rewardedWasDisplayed = false
         completion?(didReward)
     }
+
+    private func normalizedAdType(from adFormat: String) -> String {
+        let normalized = adFormat.lowercased()
+        if normalized.contains("reward") { return "rewarded_video" }
+        if normalized.contains("interstitial") { return "interstitial" }
+        if normalized.contains("banner") { return "banner" }
+        if normalized.contains("native") { return "native" }
+        return normalized
+    }
 }
 
 private final class InterstitialDelegateProxy: NSObject, LPMInterstitialAdDelegate {
@@ -605,6 +643,10 @@ private final class InterstitialDelegateProxy: NSObject, LPMInterstitialAdDelega
 
     func didCloseAd(with adInfo: LPMAdInfo) {
         owner?.handleInterstitialClosed()
+    }
+
+    func didClickAd(with adInfo: LPMAdInfo) {
+        owner?.handleInterstitialClicked(adFormat: adInfo.adFormat)
     }
 }
 
@@ -637,6 +679,10 @@ private final class RewardedDelegateProxy: NSObject, LPMRewardedAdDelegate {
 
     func didCloseAd(with adInfo: LPMAdInfo) {
         owner?.handleRewardedClosed()
+    }
+
+    func didClickAd(with adInfo: LPMAdInfo) {
+        owner?.handleRewardedClicked(adFormat: adInfo.adFormat)
     }
 }
 #endif

@@ -346,6 +346,10 @@ struct MainMenuView: View {
     }
 
     private func rateApp() {
+        // iOS does not return the selected star value from the system rating flow.
+        // Log the rate intent with a canonical 5-point scale when user opens review flow.
+        MetaAppEventsManager.logRated(ratingValue: 5, maxRatingValue: 5, contentType: "game")
+
         if let reviewURL {
             openURL(reviewURL)
             return

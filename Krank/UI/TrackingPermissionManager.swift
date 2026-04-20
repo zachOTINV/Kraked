@@ -34,6 +34,7 @@ final class TrackingPermissionManager {
             }
         }
 
+        MetaAppEventsManager.syncAdvertiserTrackingStatus()
         defaults.set(true, forKey: StorageKeys.didRequestATT)
     }
 }

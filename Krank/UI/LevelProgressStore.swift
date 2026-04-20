@@ -16,7 +16,10 @@ final class LevelProgressStore {
     func markCompleted(levelIndex: Int) {
         guard levelIndex >= 0 else { return }
         var completed = completedLevels()
-        completed.insert(levelIndex)
+        let insertionResult = completed.insert(levelIndex)
+        if insertionResult.inserted {
+            MetaAppEventsManager.logLevelCompleted(levelNumber: levelIndex + 1)
+        }
         defaults.set(Array(completed).sorted(), forKey: completedKey)
     }
 

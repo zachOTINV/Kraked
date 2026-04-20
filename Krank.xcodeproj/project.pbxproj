@@ -84,6 +84,7 @@
 				76BBF4392F53E33800EA23DA /* Frameworks */,
 				76BBF43A2F53E33800EA23DA /* Resources */,
 				856935FDEE0CCF608DEA3F3B /* [CP] Copy Pods Resources */,
+				1F3A1379D8856836FCC42D2B /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -142,6 +143,27 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		1F3A1379D8856836FCC42D2B /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Krank/Pods-Krank-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Krank/Pods-Krank-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Krank/Pods-Krank-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		856935FDEE0CCF608DEA3F3B /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -326,9 +348,15 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 3YWN9K3Q72;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_FacebookAdvertiserIDCollectionEnabled = YES;
+				INFOPLIST_KEY_FacebookAppID = "$(META_FACEBOOK_APP_ID)";
+				INFOPLIST_KEY_FacebookAutoLogAppEventsEnabled = YES;
+				INFOPLIST_KEY_FacebookClientToken = "$(META_FACEBOOK_CLIENT_TOKEN)";
+				INFOPLIST_KEY_FacebookDisplayName = Krank;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.puzzle-games";
 				INFOPLIST_KEY_NSUserTrackingUsageDescription = "We use your data to show more relevant ads and keep the game free.";
 				INFOPLIST_KEY_SKAdNetworkItems = "{\n    SKAdNetworkIdentifier = \"su67r6k2v3.skadnetwork\";\n}";
@@ -343,7 +371,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
+				META_FACEBOOK_APP_ID = 1296579912368807;
+				META_FACEBOOK_CLIENT_TOKEN = a549ed8db6055530b0453f5a1d070e8c;
 				PRODUCT_BUNDLE_IDENTIFIER = com.overtimeinnovations.krank;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -367,9 +397,15 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 3YWN9K3Q72;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_FacebookAdvertiserIDCollectionEnabled = YES;
+				INFOPLIST_KEY_FacebookAppID = "$(META_FACEBOOK_APP_ID)";
+				INFOPLIST_KEY_FacebookAutoLogAppEventsEnabled = YES;
+				INFOPLIST_KEY_FacebookClientToken = "$(META_FACEBOOK_CLIENT_TOKEN)";
+				INFOPLIST_KEY_FacebookDisplayName = Krank;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.puzzle-games";
 				INFOPLIST_KEY_NSUserTrackingUsageDescription = "We use your data to show more relevant ads and keep the game free.";
 				INFOPLIST_KEY_SKAdNetworkItems = "{\n    SKAdNetworkIdentifier = \"su67r6k2v3.skadnetwork\";\n}";
@@ -384,7 +420,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
+				META_FACEBOOK_APP_ID = 1296579912368807;
+				META_FACEBOOK_CLIENT_TOKEN = a549ed8db6055530b0453f5a1d070e8c;
 				PRODUCT_BUNDLE_IDENTIFIER = com.overtimeinnovations.krank;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;

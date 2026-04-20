@@ -2,6 +2,7 @@ import UIKit
 import SwiftUI
 
 class GameViewController: UIViewController {
+    private let hideStatusBarForCapture = ProcessInfo.processInfo.arguments.contains("--ui-hide-status-bar")
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -20,6 +21,6 @@ class GameViewController: UIViewController {
     }
 
     override var prefersStatusBarHidden: Bool {
-        false
+        hideStatusBarForCapture
     }
 }

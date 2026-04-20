@@ -25,7 +25,7 @@
           "locale" : "en_US"
         }
       ],
-      "productID" : "otinv.Krank.remove_ads",
+      "productID" : "com.otinv.krank.remove_ads",
       "referenceName" : "remove_ads",
       "type" : "NonConsumable"
     },
@@ -40,7 +40,7 @@
           "locale" : "en_US"
         }
       ],
-      "productID" : "otinv.Krank.unlock_more_levels",
+      "productID" : "com.otinv.krank.unlock_more_levels",
       "referenceName" : "unlock_more_levels",
       "type" : "NonConsumable"
     }

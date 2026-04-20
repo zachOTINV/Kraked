@@ -4,7 +4,7 @@ set -euo pipefail
 DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
 PROJECT="/Users/zachpass/Desktop/Games/Color Swap/Krank/Krank.xcodeproj"
 SCHEME="Krank"
-BUNDLE_ID="otinv.Krank"
+BUNDLE_ID="com.overtimeinnovations.krank"
 DERIVED_DATA="/tmp/krank-derived"
 
 DEVICE_ID="${DEVICE_ID:-booted}"
