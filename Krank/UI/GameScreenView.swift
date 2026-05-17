@@ -88,6 +88,24 @@ struct GameScreenView: View {
         darkModeEnabled ? Color(red: 0.12, green: 0.14, blue: 0.18) : Color.white.opacity(0.99)
     }
 
+    private var adsRemovedTextColor: Color {
+        darkModeEnabled
+            ? Color(red: 0.56, green: 0.82, blue: 0.66)
+            : Color(red: 0.18, green: 0.56, blue: 0.32)
+    }
+
+    private var adsRemovedBackground: Color {
+        darkModeEnabled
+            ? Color(red: 0.18, green: 0.23, blue: 0.21)
+            : Color(red: 0.89, green: 0.95, blue: 0.90)
+    }
+
+    private var adsRemovedStroke: Color {
+        darkModeEnabled
+            ? Color(red: 0.29, green: 0.42, blue: 0.35)
+            : Color(red: 0.72, green: 0.85, blue: 0.76)
+    }
+
     private var rowBackground: Color {
         darkModeEnabled ? Color(red: 0.17, green: 0.19, blue: 0.24) : Color(red: 0.95, green: 0.96, blue: 0.98)
     }
@@ -1067,13 +1085,13 @@ struct GameScreenView: View {
             } label: {
                 Label(hasRemovedAds ? "Ads Removed" : "Remove Ads", systemImage: hasRemovedAds ? "checkmark.seal.fill" : "nosign")
                     .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(hasRemovedAds ? Color(red: 0.16, green: 0.58, blue: 0.32) : Color(red: 0.89, green: 0.68, blue: 0.05))
+                    .foregroundStyle(hasRemovedAds ? adsRemovedTextColor : Color(red: 0.89, green: 0.68, blue: 0.05))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(hasRemovedAds ? Color(red: 0.88, green: 0.96, blue: 0.91) : Color(red: 0.99, green: 0.96, blue: 0.87))
+                    .background(hasRemovedAds ? adsRemovedBackground : Color(red: 0.99, green: 0.96, blue: 0.87))
                     .overlay(
                         RoundedRectangle(cornerRadius: 15, style: .continuous)
-                            .stroke(hasRemovedAds ? Color(red: 0.63, green: 0.84, blue: 0.70) : Color(red: 0.95, green: 0.85, blue: 0.53), lineWidth: 1.3)
+                            .stroke(hasRemovedAds ? adsRemovedStroke : Color(red: 0.95, green: 0.85, blue: 0.53), lineWidth: 1.3)
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
             }

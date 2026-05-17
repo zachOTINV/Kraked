@@ -1,5 +1,4 @@
 import SwiftUI
-import StoreKit
 import UIKit
 
 private enum MainMenuRoute: Hashable {
@@ -11,13 +10,18 @@ struct MainMenuView: View {
     let automationConfig: AutomationConfig
     @StateObject private var purchaseManager = InAppPurchaseManager.shared
     private let feedback = FeedbackManager.shared
+    private let reviewPromptManager = ReviewPromptManager.shared
     @State private var path = NavigationPath()
     @State private var showRemoveAdsModal = false
     @State private var showUnlockLevelsModal = false
     @State private var showSettingsModal = false
     @State private var showHowToPlayModal = false
+    @State private var showFeedbackModal = false
+    @State private var showReviewPrompt = false
     @State private var showShareSheet = false
     @State private var purchaseMessage: String?
+    @State private var feedbackMailUnavailableMessage: String?
+    @State private var reviewPromptTask: Task<Void, Never>?
     @AppStorage("krank.setting.sound") private var soundEnabled = true
     @AppStorage("krank.setting.haptics") private var hapticsEnabled = true
     @AppStorage("krank.setting.music") private var musicEnabled = true
@@ -43,6 +47,30 @@ struct MainMenuView: View {
 
     private var rowBackground: Color {
         darkModeEnabled ? Color(red: 0.17, green: 0.19, blue: 0.24) : Color.white.opacity(0.72)
+    }
+
+    private var adsRemovedTextColor: Color {
+        darkModeEnabled
+            ? Color(red: 0.56, green: 0.82, blue: 0.66)
+            : Color(red: 0.18, green: 0.56, blue: 0.32)
+    }
+
+    private var adsRemovedBackground: Color {
+        darkModeEnabled
+            ? Color(red: 0.18, green: 0.23, blue: 0.21)
+            : Color(red: 0.89, green: 0.95, blue: 0.90)
+    }
+
+    private var adsRemovedStroke: Color {
+        darkModeEnabled
+            ? Color(red: 0.29, green: 0.42, blue: 0.35)
+            : Color(red: 0.72, green: 0.85, blue: 0.76)
+    }
+
+    private var adsRemovedShadow: Color {
+        darkModeEnabled
+            ? Color(red: 0.12, green: 0.42, blue: 0.28).opacity(0.18)
+            : Color(red: 0.32, green: 0.66, blue: 0.46).opacity(0.12)
     }
 
     private var modalBackground: Color {
@@ -79,9 +107,31 @@ struct MainMenuView: View {
         return URL(string: "https://apps.apple.com/app/id\(appStoreNumericID)")
     }
 
+    private var appStoreListingURL: URL? {
+        guard !appStoreNumericID.isEmpty else { return nil }
+        return URL(string: "itms-apps://itunes.apple.com/app/id\(appStoreNumericID)")
+    }
+
     private var reviewURL: URL? {
         guard !appStoreNumericID.isEmpty else { return nil }
         return URL(string: "itms-apps://itunes.apple.com/app/id\(appStoreNumericID)?action=write-review")
+    }
+
+    private var completedLevelCount: Int {
+        LevelProgressStore.shared.completedLevels().count
+    }
+
+    private var isReviewPromptPresentationBlocked: Bool {
+        showReviewPrompt
+            || showRemoveAdsModal
+            || showUnlockLevelsModal
+            || showSettingsModal
+            || showHowToPlayModal
+            || showFeedbackModal
+            || showShareSheet
+            || purchaseMessage != nil
+            || feedbackMailUnavailableMessage != nil
+            || !path.isEmpty
     }
 
     private var shareItems: [Any] {
@@ -154,13 +204,26 @@ struct MainMenuView: View {
                             menuRow(icon: "book.fill", color: Color.green, title: "How to Play")
                         }
                         .buttonStyle(.plain)
-                        Button {
-                            feedback.playTap()
-                            showSettingsModal = true
-                        } label: {
-                            menuRow(icon: "gearshape.fill", color: Color.gray, title: "Settings")
+
+                        HStack(spacing: 14) {
+                            utilityMenuButton(
+                                icon: "bubble.left.and.bubble.right.fill",
+                                color: Color(red: 0.13, green: 0.58, blue: 0.88),
+                                title: "Feedback"
+                            ) {
+                                feedback.playTap()
+                                showFeedbackModal = true
+                            }
+
+                            utilityMenuButton(
+                                icon: "gearshape.fill",
+                                color: Color.gray,
+                                title: "Settings"
+                            ) {
+                                feedback.playTap()
+                                showSettingsModal = true
+                            }
                         }
-                        .buttonStyle(.plain)
                     }
 
                     Spacer()
@@ -172,15 +235,22 @@ struct MainMenuView: View {
                         }
                     } label: {
                         Label(
-                            hasRemovedAds ? "ADS REMOVED" : "REMOVE ADS",
+                            hasRemovedAds ? "Ads Removed" : "REMOVE ADS",
                             systemImage: hasRemovedAds ? "checkmark.seal.fill" : "nosign"
                         )
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(hasRemovedAds ? Color(red: 0.18, green: 0.56, blue: 0.32) : secondaryTextColor.opacity(0.72))
+                        .foregroundStyle(hasRemovedAds ? adsRemovedTextColor : secondaryTextColor.opacity(0.72))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 13)
-                        .background(hasRemovedAds ? Color(red: 0.87, green: 0.95, blue: 0.90) : rowBackground)
+                        .background(hasRemovedAds ? adsRemovedBackground : rowBackground)
+                        .overlay {
+                            if hasRemovedAds {
+                                Capsule()
+                                    .stroke(adsRemovedStroke, lineWidth: 1)
+                            }
+                        }
                         .clipShape(Capsule())
+                        .shadow(color: hasRemovedAds ? adsRemovedShadow : .clear, radius: 12, x: 0, y: 6)
                     }
                     .disabled(hasRemovedAds)
 
@@ -235,6 +305,22 @@ struct MainMenuView: View {
                     settingsModal
                         .padding(.horizontal, 22)
                         .transition(.scale(scale: 0.96).combined(with: .opacity))
+                }
+
+                if showFeedbackModal {
+                    overlayColor
+                        .ignoresSafeArea()
+
+                    FeedbackFormModal(
+                        isDarkMode: darkModeEnabled,
+                        onClose: {
+                            feedback.playTap()
+                            showFeedbackModal = false
+                        },
+                        onSubmit: submitFeedback
+                    )
+                    .padding(.horizontal, 22)
+                    .transition(.scale(scale: 0.96).combined(with: .opacity))
                 }
 
                 if showUnlockLevelsModal {
@@ -297,6 +383,29 @@ struct MainMenuView: View {
                     .padding(.horizontal, 22)
                     .transition(.scale(scale: 0.96).combined(with: .opacity))
                 }
+
+                if showReviewPrompt {
+                    overlayColor
+                        .ignoresSafeArea()
+
+                    ReviewPromptView(
+                        onRate: {
+                            feedback.playTap()
+                            rateApp()
+                        },
+                        onNotNow: {
+                            feedback.playTap()
+                            reviewPromptManager.markNotNow()
+                            showReviewPrompt = false
+                        },
+                        onNoThanks: {
+                            feedback.playTap()
+                            reviewPromptManager.markDeclined()
+                            showReviewPrompt = false
+                        }
+                    )
+                    .transition(.scale(scale: 0.94).combined(with: .opacity))
+                }
             }
             .navigationDestination(for: MainMenuRoute.self) { route in
                 switch route {
@@ -308,11 +417,18 @@ struct MainMenuView: View {
             .animation(.easeInOut(duration: 0.18), value: showRemoveAdsModal)
             .animation(.easeInOut(duration: 0.18), value: showSettingsModal)
             .animation(.easeInOut(duration: 0.18), value: showHowToPlayModal)
+            .animation(.easeInOut(duration: 0.18), value: showFeedbackModal)
+            .animation(.easeInOut(duration: 0.18), value: showReviewPrompt)
             .preferredColorScheme(darkModeEnabled ? .dark : .light)
             .alert("Store", isPresented: purchaseMessageBinding) {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(purchaseMessage ?? "")
+            }
+            .alert("Feedback", isPresented: feedbackMailUnavailableBinding) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(feedbackMailUnavailableMessage ?? "")
             }
             .sheet(isPresented: $showShareSheet) {
                 ShareSheet(activityItems: shareItems)
@@ -324,6 +440,17 @@ struct MainMenuView: View {
                 feedback.refreshSettings()
                 if automationConfig.autoPlay {
                     openLevelSelect()
+                }
+                attemptReviewPromptPresentation()
+            }
+            .onDisappear {
+                cancelScheduledReviewPromptPresentation()
+            }
+            .onChange(of: isReviewPromptPresentationBlocked) { _, isBlocked in
+                if isBlocked {
+                    cancelScheduledReviewPromptPresentation()
+                } else {
+                    attemptReviewPromptPresentation()
                 }
             }
         }
@@ -340,12 +467,53 @@ struct MainMenuView: View {
         )
     }
 
+    private var feedbackMailUnavailableBinding: Binding<Bool> {
+        Binding(
+            get: { feedbackMailUnavailableMessage != nil },
+            set: { newValue in
+                if !newValue {
+                    feedbackMailUnavailableMessage = nil
+                }
+            }
+        )
+    }
+
     private func openLevelSelect() {
         guard path.isEmpty else { return }
         path.append(MainMenuRoute.levelSelect)
     }
 
+    private func submitFeedback(type: FeedbackType, message: String) {
+        guard let mailURL = FeedbackMailBuilder.mailtoURL(
+            type: type,
+            message: message,
+            appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Unknown",
+            buildNumber: Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "Unknown",
+            systemVersion: UIDevice.current.systemVersion,
+            deviceModel: UIDevice.current.model
+        ) else {
+            feedback.playWarning()
+            feedbackMailUnavailableMessage = "Please enter a message first."
+            return
+        }
+
+        UIApplication.shared.open(mailURL, options: [:]) { didOpen in
+            Task { @MainActor in
+                if didOpen {
+                    showFeedbackModal = false
+                } else {
+                    feedback.playWarning()
+                    feedbackMailUnavailableMessage = "Mail is not available on this device. Please email contact@overtimeinnovations.com."
+                }
+            }
+        }
+    }
+
     private func rateApp() {
+        cancelScheduledReviewPromptPresentation()
+        showReviewPrompt = false
+        reviewPromptManager.markRated()
+
         // iOS does not return the selected star value from the system rating flow.
         // Log the rate intent with a canonical 5-point scale when user opens review flow.
         MetaAppEventsManager.logRated(ratingValue: 5, maxRatingValue: 5, contentType: "game")
@@ -355,11 +523,31 @@ struct MainMenuView: View {
             return
         }
 
-        guard let scene = UIApplication.shared.connectedScenes
-            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene else {
-            return
+        if let appStoreListingURL {
+            openURL(appStoreListingURL)
         }
-        AppStore.requestReview(in: scene)
+    }
+
+    private func attemptReviewPromptPresentation() {
+        guard !isReviewPromptPresentationBlocked else { return }
+        guard reviewPromptManager.isEligible(completedLevelCount: completedLevelCount) else { return }
+
+        cancelScheduledReviewPromptPresentation()
+        reviewPromptTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 700_000_000)
+            reviewPromptTask = nil
+
+            guard !Task.isCancelled else { return }
+            guard !isReviewPromptPresentationBlocked else { return }
+            guard reviewPromptManager.isEligible(completedLevelCount: completedLevelCount) else { return }
+
+            showReviewPrompt = true
+        }
+    }
+
+    private func cancelScheduledReviewPromptPresentation() {
+        reviewPromptTask?.cancel()
+        reviewPromptTask = nil
     }
 
     private func purchaseBonusPacks() {
@@ -557,6 +745,32 @@ struct MainMenuView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text(accessibilityLabel))
+    }
+
+    private func utilityMenuButton(icon: String, color: Color, title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(color)
+                    .frame(width: 24)
+
+                Text(title)
+                    .font(.system(size: 16, weight: .semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.78)
+                    .foregroundStyle(primaryTextColor)
+
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 18)
+            .background(rowBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(title))
     }
 
     private func menuRow(icon: String, color: Color, title: String) -> some View {

@@ -5,6 +5,12 @@ PODS:
     - FBAEMKit (= 18.0.3)
     - FBSDKCoreKit_Basics (= 18.0.3)
   - FBSDKCoreKit_Basics (18.0.3)
+  - Google-Mobile-Ads-SDK (13.1.0):
+    - GoogleUserMessagingPlatform (>= 1.1)
+  - GoogleUserMessagingPlatform (3.1.0)
+  - IronSourceAdMobAdapter (5.6.0.0):
+    - Google-Mobile-Ads-SDK (= 13.1.0)
+    - IronSourceSDK/Ads (~> 9.0)
   - IronSourceAdQualitySDK (9.2.1)
   - IronSourceSDK (9.3.0.0):
     - IronSourceSDK/AdQuality (= 9.3.0.0)
@@ -15,6 +21,7 @@ PODS:
 
 DEPENDENCIES:
   - FBSDKCoreKit (~> 18.0)
+  - IronSourceAdMobAdapter (= 5.6.0)
   - IronSourceSDK
 
 SPEC REPOS:
@@ -22,6 +29,9 @@ SPEC REPOS:
     - FBAEMKit
     - FBSDKCoreKit
     - FBSDKCoreKit_Basics
+    - Google-Mobile-Ads-SDK
+    - GoogleUserMessagingPlatform
+    - IronSourceAdMobAdapter
     - IronSourceAdQualitySDK
     - IronSourceSDK
 
@@ -29,9 +39,12 @@ SPEC CHECKSUMS:
   FBAEMKit: 2a6b529993713c185b02bc36f8c91129bf78dfb0
   FBSDKCoreKit: 65d7f7a7d6fcc3aa6eb6e093ec737a4184fc6049
   FBSDKCoreKit_Basics: 7bc9d8fde8f70985fba2ed7c1d07e319f969a991
+  Google-Mobile-Ads-SDK: 8429bef6ee1a4e322b0a5571b64217ed8317a3d5
+  GoogleUserMessagingPlatform: befe603da6501006420c206222acd449bba45a9c
+  IronSourceAdMobAdapter: fae3a1370e49145b4ea2d8407e5bdb7f6a0da286
   IronSourceAdQualitySDK: 2a45fd35df68f6c03090e9c330f4efe64e70a9ff
   IronSourceSDK: 5febe9a2c8c4eb4ac743dd0da492d2a6b69b5b7f
 
-PODFILE CHECKSUM: 0debd67a462acfba292cc73e8a81b1e2e8b6a063
+PODFILE CHECKSUM: 235c4dfe1fd9a5a137a4b0fd6a501ed33916e4ed
 
 COCOAPODS: 1.16.2
