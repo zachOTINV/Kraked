@@ -260,6 +260,7 @@ struct LevelSelectView: View {
         let selected = selectedPackID == pack.id
         let isPlayable = isPackPlayable(pack)
         let progress = packProgress(for: pack)
+        let isCompleted = progress >= 1
 
         return Button {
             guard isPlayable else { return }
@@ -273,7 +274,18 @@ struct LevelSelectView: View {
                         .tracking(0.8)
                         .foregroundStyle((selected ? pack.accent : secondaryTextColor).opacity(selected ? 1 : 0.62))
 
-                    if pack.isPremium {
+                    Spacer(minLength: 6)
+
+                    if isCompleted {
+                        Text("COMPLETED")
+                            .font(.system(size: 8, weight: .black))
+                            .tracking(0.55)
+                            .foregroundStyle(pack.accent)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 4)
+                            .background(pack.accent.opacity(darkModeEnabled ? 0.18 : 0.12))
+                            .clipShape(Capsule())
+                    } else if pack.isPremium {
                         Text("BONUS")
                             .font(.system(size: 9, weight: .black))
                             .tracking(0.8)
@@ -292,9 +304,14 @@ struct LevelSelectView: View {
                 Capsule()
                     .fill((darkModeEnabled ? Color.white.opacity(0.16) : Color(red: 0.83, green: 0.86, blue: 0.90)).opacity(selected ? 0.7 : 0.55))
                     .overlay(alignment: .leading) {
-                        Capsule()
-                            .fill(pack.accent)
-                            .frame(width: max(0, 140 * progress))
+                        GeometryReader { geometry in
+                            Capsule()
+                                .fill(pack.accent)
+                                .frame(
+                                    width: max(0, geometry.size.width * progress),
+                                    height: geometry.size.height
+                                )
+                        }
                     }
                     .frame(height: 8)
             }
